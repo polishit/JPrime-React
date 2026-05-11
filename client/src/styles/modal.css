@@ -1,0 +1,269 @@
+/* ============================================================
+   MODAL STYLES - appended to dashboard.css
+   ============================================================ */
+
+/* Overlay */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 999;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+}
+.modal-overlay.active { display: flex; }
+
+/* Modal box */
+.modal-box {
+    background: #fff;
+    border-radius: 1rem;
+    padding: 2rem;
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    animation: modalIn 0.2s ease;
+}
+@keyframes modalIn { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+.modal-box h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: #121212;
+}
+.modal-close {
+    position: absolute;
+    top: 1rem; right: 1rem;
+    background: none; border: none;
+    font-size: 1.2rem; color: gray;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.modal-close:hover { color: #ffa500; }
+
+/* Form fields */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+}
+.form-group label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #121212;
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 0.6rem 0.8rem;
+    border: 1px solid rgba(128,128,128,0.35);
+    border-radius: 0.5rem;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.875rem;
+    outline: none;
+    transition: border 0.2s;
+    width: 100%;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus { border-color: #ffa500; }
+.form-group textarea { resize: vertical; min-height: 70px; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+}
+.btn-cancel {
+    padding: 0.6rem 1.2rem;
+    border: 1px solid rgba(128,128,128,0.35);
+    border-radius: 0.4rem;
+    background: none;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.btn-cancel:hover { background: #f5f5f5; }
+.btn-submit {
+    padding: 0.6rem 1.4rem;
+    background: #ffa500;
+    color: white;
+    border: none;
+    border-radius: 0.4rem;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.btn-submit:hover { opacity: 0.8; }
+.btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Status badges */
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.65rem;
+    border-radius: 2rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+.badge-active   { background: #dcfce7; color: #166534; }
+.badge-expired  { background: #fee2e2; color: #991b1b; }
+.badge-frozen   { background: #dbeafe; color: #1e40af; }
+
+/* Toast */
+.toast {
+    position: fixed;
+    bottom: 2rem; right: 2rem;
+    background: #121212;
+    color: white;
+    padding: 0.8rem 1.4rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    animation: slideIn 0.3s ease;
+}
+.toast.show { display: flex; }
+.toast.success { border-left: 4px solid #22c55e; }
+.toast.error   { border-left: 4px solid #ef4444; }
+@keyframes slideIn { from { transform: translateX(100px); opacity:0; } to { transform: translateX(0); opacity:1; } }
+
+/* Loading spinner */
+.spinner {
+    display: inline-block;
+    width: 18px; height: 18px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: gray;
+    font-size: 0.9rem;
+}
+.empty-state i { font-size: 2rem; margin-bottom: 0.5rem; color: #ccc; display: block; }
+
+/* Confirm dialog */
+.confirm-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 1100;
+    justify-content: center;
+    align-items: center;
+}
+.confirm-overlay.active { display: flex; }
+.confirm-box {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 1.5rem 2rem;
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+}
+.confirm-box h3 { margin-bottom: 0.5rem; font-size: 1.1rem; }
+.confirm-box p  { color: gray; font-size: 0.875rem; margin-bottom: 1.25rem; }
+.confirm-btns { display: flex; justify-content: center; gap: 0.75rem; }
+.btn-danger {
+    padding: 0.6rem 1.4rem;
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 0.4rem;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.btn-danger:hover { opacity: 0.8; }
+
+/* ============================================================
+   MOBILE MODAL FIXES
+   ============================================================ */
+@media (max-width: 767px) {
+  .modal-box {
+    padding: 1.25rem;
+    max-height: 95vh;
+    border-radius: 0.75rem;
+    margin: 0 var(--space-2);
+  }
+
+  .modal-box h2 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    padding-right: 1.5rem; /* avoid overlap with close button */
+  }
+
+  /* Stack 2-col form rows to single column on mobile */
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .form-group {
+    margin-bottom: 0.75rem;
+  }
+
+  .modal-footer {
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+  }
+
+  .btn-cancel,
+  .btn-submit {
+    width: 100%;
+    text-align: center;
+    padding: 0.75rem 1rem;
+  }
+
+  /* Confirm box */
+  .confirm-box {
+    margin: 0 var(--space-3);
+    padding: 1.25rem;
+  }
+
+  .confirm-btns {
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+  }
+
+  .btn-cancel,
+  .btn-danger {
+    width: 100%;
+  }
+
+  /* Toast: full width on very small screens */
+  .toast {
+    bottom: 1rem;
+    right: 1rem;
+    left: 1rem;
+    right: 1rem;
+  }
+}
+
+@media (max-width: 399px) {
+  .modal-overlay { padding: 0.5rem; }
+  .modal-box { padding: 1rem; }
+}

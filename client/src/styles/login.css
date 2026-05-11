@@ -1,0 +1,263 @@
+:root {
+  --font-xs: 0.75rem;
+  --font-sm: 0.875rem;
+  --font-md: 1rem;
+  --font-lg: 1.25rem;
+  --font-xl: 1.5rem;
+  --font-2xl: 2rem;
+  --font-3xl: 2.5rem;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+  --space-5: 2rem;
+  --space-6: 3rem;
+
+  --line-tight: 1.2;
+  --line-normal: 1.5;
+  --line-relaxed: 1.75;
+
+  --primary: #ffa500;
+  --secondary: #121212;
+  --third: #278727;
+  --hover: #413f3f;
+  --font-color: #ffffff;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  min-height: 100vh;
+}
+
+/* ============================================================
+   LOGIN PAGE — DESKTOP (side by side)
+   ============================================================ */
+.login-page {
+  min-height: 100vh;
+  display: flex;
+}
+
+/* Branding panel */
+.right {
+  flex: 1;
+  background-color: var(--secondary);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  justify-content: center;
+  align-items: center;
+  padding: var(--space-6);
+  text-align: center;
+}
+
+.right i {
+  color: var(--font-color);
+  background-color: var(--primary);
+  font-size: var(--font-2xl);
+  padding: var(--space-4);
+  border-radius: 10px;
+}
+
+.right h1 {
+  font-size: var(--font-3xl);
+  color: var(--font-color);
+  line-height: var(--line-tight);
+}
+
+.right h1 span { color: var(--primary); }
+
+.right p {
+  font-size: var(--font-md);
+  color: var(--font-color);
+  text-align: center;
+  max-width: 24rem;
+  opacity: 0.85;
+}
+
+/* Form panel */
+.left {
+  flex: 1;
+  background-color: white;
+  display: flex;
+  gap: var(--space-5);
+  padding: var(--space-6);
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.welcome {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+  max-width: 26rem;
+}
+
+.welcome h3 { font-size: var(--font-2xl); }
+.welcome p { font-size: var(--font-md); color: gray; }
+
+.form-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  width: 100%;
+  max-width: 26rem;
+}
+
+.form-container label { font-size: var(--font-sm); font-weight: 500; }
+
+.form-container input,
+.form-container button {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(128, 128, 128, 0.4);
+  border-radius: 0.4rem;
+  font-size: var(--font-md);
+  font-family: 'Poppins', sans-serif;
+}
+
+.form-container input:focus {
+  border: 2px solid var(--primary);
+  outline: none;
+}
+
+.form-container input::placeholder {
+  font-family: 'Poppins', sans-serif;
+  color: #bbb;
+  font-size: var(--font-sm);
+}
+
+.form-container button {
+  background-color: var(--primary);
+  color: white;
+  font-size: var(--font-md);
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  border-radius: 0.4rem;
+}
+
+.form-container button:hover { opacity: 0.85; }
+
+.welcome-footer {
+  width: 100%;
+  max-width: 26rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.demo { font-size: var(--font-xs); color: gray; }
+
+.credentials {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--font-xs);
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.credentials p { color: gray; }
+.credentials p span { color: black; font-weight: 500; }
+
+/* ============================================================
+   BREAKPOINT: TABLET  768px – 1023px
+   ============================================================ */
+@media (max-width: 1023px) {
+  .login-page {
+    flex-direction: column;
+  }
+
+  /* Branding: compact horizontal strip at top */
+  .right {
+    flex-direction: row;
+    flex: unset;
+    width: 100%;
+    background-color: var(--secondary);
+    padding: var(--space-4) var(--space-5);
+    justify-content: center;
+    gap: var(--space-3);
+  }
+
+  .right i {
+    font-size: var(--font-lg);
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .right h1 {
+    font-size: var(--font-xl);
+    color: var(--font-color);
+  }
+
+  .right h1 span { color: var(--primary); }
+  .right p { display: none; }
+
+  /* Form panel */
+  .left {
+    flex: unset;
+    width: 100%;
+    padding: var(--space-5) var(--space-4);
+  }
+}
+
+/* ============================================================
+   BREAKPOINT: MOBILE  < 600px
+   ============================================================ */
+@media (max-width: 599px) {
+  /* Branding strip: icon + title tighter */
+  .right {
+    padding: var(--space-3) var(--space-4);
+    gap: var(--space-2);
+  }
+
+  .right i {
+    font-size: var(--font-md);
+    padding: var(--space-2);
+  }
+
+  .right h1 { font-size: var(--font-lg); }
+
+  /* Form panel: tighter padding */
+  .left {
+    padding: var(--space-4) var(--space-3);
+    gap: var(--space-4);
+  }
+
+  .welcome h3 { font-size: var(--font-xl); }
+  .welcome p { font-size: var(--font-sm); }
+
+  .form-container {
+    gap: var(--space-2);
+  }
+
+  .form-container input,
+  .form-container button {
+    padding: 0.8rem 0.9rem;
+    font-size: var(--font-sm);
+  }
+}
+
+/* ============================================================
+   BREAKPOINT: SMALL MOBILE  < 400px
+   ============================================================ */
+@media (max-width: 399px) {
+  .right { flex-direction: column; padding: var(--space-3); }
+  .right h1 { font-size: var(--font-md); }
+  .right i { font-size: var(--font-sm); }
+  .left { padding: var(--space-3) var(--space-2); }
+  .credentials { flex-direction: column; }
+}
