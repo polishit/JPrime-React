@@ -173,6 +173,7 @@ export default function Payments() {
         </div>
 
         <div className="pay-table">
+          {/* Desktop Table */}
           <table className="paytable-container">
             <thead>
               <tr>
@@ -188,7 +189,7 @@ export default function Payments() {
               ) : payments.map(p => (
                 <tr key={p.payments_id}>
                   <td>{p.fullName}</td>
-                  <td>{p.planName}</td>
+                  <td>{p.planName || '—'}</td>
                   <td style={{ color:'#278727', fontWeight:700 }}>{fmt(p.amount)}</td>
                   <td>{p.paymentMode}</td>
                   <td>{p.paymentDate?.split('T')[0] ?? p.paymentDate}</td>
@@ -197,6 +198,37 @@ export default function Payments() {
               ))}
             </tbody>
           </table>
+
+          {/* Mobile Cards */}
+          <div className="mobile-cards">
+            {payments.length === 0 ? (
+              <div className="empty-state">
+                <i className="fa-solid fa-receipt" /><br />No payments recorded
+              </div>
+            ) : payments.map(p => (
+              <div className="mobile-card" key={p.payments_id}>
+                <div className="mobile-card-header">
+                  <div>
+                    <div className="mobile-card-name">{p.fullName}</div>
+                    <div className="mobile-card-sub">{p.paymentDate?.split('T')[0] ?? p.paymentDate}</div>
+                  </div>
+                  <strong style={{ color:'#278727' }}>{fmt(p.amount)}</strong>
+                </div>
+                <div className="mobile-card-row">
+                  <span className="mobile-card-label">Plan</span>
+                  <span className="mobile-card-value">{p.planName || '—'}</span>
+                </div>
+                <div className="mobile-card-row">
+                  <span className="mobile-card-label">Mode</span>
+                  <span className="mobile-card-value">{p.paymentMode}</span>
+                </div>
+                <div className="mobile-card-row">
+                  <span className="mobile-card-label">Remarks</span>
+                  <span className="mobile-card-value">{p.remarks || '—'}</span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </main>
     </>

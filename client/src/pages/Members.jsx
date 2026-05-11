@@ -244,6 +244,7 @@ export default function Members() {
         </div>
 
         <div className="members-table">
+          {/* Desktop Table */}
           <table className="members-table-container">
             <thead>
               <tr>
@@ -259,20 +260,12 @@ export default function Members() {
                 </td></tr>
               ) : members.map(m => (
                 <tr key={m.member_id}>
-                  <td>
-                    <div>{m.fullName}</div>
-                    <div>{m.gender || ''}</div>
-                  </td>
-                  <td>
-                    <div>{m.email || '—'}</div>
-                    <div>{m.phone || '—'}</div>
-                  </td>
+                  <td><div>{m.fullName}</div><div>{m.gender || ''}</div></td>
+                  <td><div>{m.email || '—'}</div><div>{m.phone || '—'}</div></td>
                   <td>{m.planName || '—'}</td>
                   <td>{m.trainerNames || '—'}</td>
                   <td>{m.expiryDate?.split('T')[0] ?? m.expiryDate}</td>
-                  <td>
-                    <span className={`badge badge-${m.status}`}>{m.status}</span>
-                  </td>
+                  <td><span className={`badge badge-${m.status}`}>{m.status}</span></td>
                   <td>
                     <div className="actions-wrapper">
                       <button onClick={() => openEdit(m)} title="Edit">
@@ -287,6 +280,53 @@ export default function Members() {
               ))}
             </tbody>
           </table>
+
+          {/* Mobile Cards */}
+          <div className="mobile-cards">
+            {members.length === 0 ? (
+              <div className="empty-state">
+                <i className="fa-solid fa-users-slash" /><br />No members found
+              </div>
+            ) : members.map(m => (
+              <div className="mobile-card" key={m.member_id}>
+                <div className="mobile-card-header">
+                  <div>
+                    <div className="mobile-card-name">{m.fullName}</div>
+                    <div className="mobile-card-sub">{m.gender || ''}</div>
+                  </div>
+                  <span className={`badge badge-${m.status}`}>{m.status}</span>
+                </div>
+                <div className="mobile-card-row">
+                  <span className="mobile-card-label">Phone</span>
+                  <span className="mobile-card-value">{m.phone || '—'}</span>
+                </div>
+                <div className="mobile-card-row">
+                  <span className="mobile-card-label">Email</span>
+                  <span className="mobile-card-value">{m.email || '—'}</span>
+                </div>
+                <div className="mobile-card-row">
+                  <span className="mobile-card-label">Plan</span>
+                  <span className="mobile-card-value">{m.planName || '—'}</span>
+                </div>
+                <div className="mobile-card-row">
+                  <span className="mobile-card-label">Trainer</span>
+                  <span className="mobile-card-value">{m.trainerNames || '—'}</span>
+                </div>
+                <div className="mobile-card-row">
+                  <span className="mobile-card-label">Expiry</span>
+                  <span className="mobile-card-value">{m.expiryDate?.split('T')[0] ?? m.expiryDate}</span>
+                </div>
+                <div className="mobile-card-actions">
+                  <button onClick={() => openEdit(m)}>
+                    <i className="fa-solid fa-pen-to-square" /> Edit
+                  </button>
+                  <button onClick={() => setDeleteTarget(m.member_id)}>
+                    <i className="fa-solid fa-delete-left" /> Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </main>
     </>

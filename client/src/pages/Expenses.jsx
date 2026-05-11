@@ -146,6 +146,7 @@ export default function Expenses() {
         </div>
 
         <div className="expense-table">
+          {/* Desktop Table */}
           <table className="expense-container">
             <thead>
               <tr><th>Type</th><th>Amount</th><th>Date</th><th>Notes</th><th>Actions</th></tr>
@@ -171,6 +172,34 @@ export default function Expenses() {
               ))}
             </tbody>
           </table>
+
+          {/* Mobile Cards */}
+          <div className="mobile-cards">
+            {expenses.length === 0 ? (
+              <div className="empty-state">
+                <i className="fa-solid fa-file-invoice-dollar" /><br />No expenses recorded
+              </div>
+            ) : expenses.map(e => (
+              <div className="mobile-card" key={e.expenses_id}>
+                <div className="mobile-card-header">
+                  <div>
+                    <div className="mobile-card-name" style={{ textTransform:'capitalize' }}>{e.type}</div>
+                    <div className="mobile-card-sub">{e.expenseDate?.split('T')[0] ?? e.expenseDate}</div>
+                  </div>
+                  <strong style={{ color:'orange' }}>{fmt(e.amount)}</strong>
+                </div>
+                <div className="mobile-card-row">
+                  <span className="mobile-card-label">Notes</span>
+                  <span className="mobile-card-value">{e.notes || '—'}</span>
+                </div>
+                <div className="mobile-card-actions">
+                  <button onClick={() => setDeleteTarget(e.expenses_id)}>
+                    <i className="fa-solid fa-delete-left" /> Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </main>
     </>

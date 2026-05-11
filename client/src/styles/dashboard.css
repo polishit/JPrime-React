@@ -1033,8 +1033,6 @@ body {
    BREAKPOINT: MOBILE  < 768px
    ============================================================ */
 @media (max-width: 767px) {
- 
-
   /* Show hamburger */
     .hamburger { display: none; }
 
@@ -1263,6 +1261,7 @@ body {
     padding-bottom: 4.5rem;
   }
 }
+
 /* ============================================================
    MOBILE CARDS — replaces tables on small screens
    ============================================================ */
