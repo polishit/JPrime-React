@@ -183,27 +183,15 @@ export default function Expenses() {
                   <td style={{ color:'orange', fontWeight:700 }}>{fmt(e.amount)}</td>
                   <td>{e.expenseDate?.split('T')[0] ?? e.expenseDate}</td>
                   <td>{e.notes || '—'}</td>
-                  <td style={{ whiteSpace:'nowrap' }}>
-                    <button
-                      onClick={() => openEditModal(e)}
-                      title="Edit"
-                      style={{ background:'none', border:'none', color:'#1d7ed6', cursor:'pointer',
-                        padding:'0.3rem 0.4rem', borderRadius:'0.3rem', marginRight:'0.3rem', fontSize:'0.85rem' }}
-                      onMouseEnter={ev => ev.currentTarget.style.background='#dbeafe'}
-                      onMouseLeave={ev => ev.currentTarget.style.background='none'}
-                    >
-                      <i className="fa-solid fa-pen-to-square" />
-                    </button>
-                    <button
-                      onClick={() => setDeleteTarget(e.expenses_id)}
-                      title="Delete"
-                      style={{ background:'none', border:'none', color:'#ef4444', cursor:'pointer',
-                        padding:'0.3rem 0.4rem', borderRadius:'0.3rem', fontSize:'0.85rem' }}
-                      onMouseEnter={ev => ev.currentTarget.style.background='#fee2e2'}
-                      onMouseLeave={ev => ev.currentTarget.style.background='none'}
-                    >
-                      <i className="fa-solid fa-delete-left" />
-                    </button>
+                  <td>
+                    <div className="actions-wrapper">
+                      <button onClick={() => openEditModal(e)} title="Edit">
+                        <i className="fa-solid fa-pen-to-square" />
+                      </button>
+                      <button onClick={() => setDeleteTarget(e.expenses_id)} title="Delete">
+                        <i className="fa-solid fa-delete-left" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

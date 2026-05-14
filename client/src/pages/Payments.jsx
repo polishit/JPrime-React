@@ -3,7 +3,16 @@ import Sidebar from '../components/Sidebar';
 import Toast, { useToast } from '../components/Toast';
 import ConfirmDialog from '../components/ConfirmDialog';
 
-const EMPTY_FORM = { member_id:'', plan_id:'', amount:'', paymentMode:'Cash', paymentDate:'', remarks:'' };
+const EMPTY_FORM = {
+  is_walkin: false,
+  walkin_name: '',
+  member_id: '',
+  plan_id: '',
+  amount: '',
+  paymentMode: 'Cash',
+  paymentDate: '',
+  remarks: '',
+};
 
 function fmt(n) {
   return '₱' + Number(n).toLocaleString('en-PH', { minimumFractionDigits:2, maximumFractionDigits:2 });
@@ -11,16 +20,16 @@ function fmt(n) {
 
 export default function Payments() {
   const { toast, showToast } = useToast();
-  const [payments,    setPayments]    = useState([]);
-  const [totalIncome, setTotalIncome] = useState(0);
-  const [members,     setMembers]     = useState([]);
-  const [plans,       setPlans]       = useState([]);
-  const [planPrices,  setPlanPrices]  = useState({});
-  const [modal,       setModal]       = useState(false);
-  const [editTarget,  setEditTarget]  = useState(null);
-  const [form,        setForm]        = useState(EMPTY_FORM);
-  const [submitting,  setSubmitting]  = useState(false);
-  const [deleteTarget,setDeleteTarget]= useState(null);
+  const [payments,     setPayments]     = useState([]);
+  const [totalIncome,  setTotalIncome]  = useState(0);
+  const [members,      setMembers]      = useState([]);
+  const [plans,        setPlans]        = useState([]);
+  const [planPrices,   setPlanPrices]   = useState({});
+  const [modal,        setModal]        = useState(false);
+  const [editTarget,   setEditTarget]   = useState(null);
+  const [form,         setForm]         = useState(EMPTY_FORM);
+  const [submitting,   setSubmitting]   = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   async function loadDropdowns() {
     const [mr, pr] = await Promise.all([
@@ -51,9 +60,14 @@ export default function Payments() {
   }, []);
 
   function onChange(e) {
-    const next = { ...form, [e.target.name]: e.target.value };
-    if (e.target.name === 'plan_id' && planPrices[e.target.value] && !editTarget) {
-      next.amount = planPrices[e.target.value];
+    const { name, value, type, checked } = e.target;
+    const next = { ...form, [name]: type === 'checkbox' ? checked : value };
+    if (name === 'plan_id' && planPrices[value] && !editTarget) {
+      next.amount = planPrices[value];
+    }
+    if (name === 'is_walkin') {
+      next.member_id = '';
+      next.walkin_name = '';
     }
     setForm(next);
   }
@@ -67,7 +81,9 @@ export default function Payments() {
   function openEditModal(payment) {
     setEditTarget(payment);
     setForm({
-      member_id:   payment.member_id,
+      is_walkin:   !!payment.walkin_name,
+      walkin_name: payment.walkin_name || '',
+      member_id:   payment.member_id || '',
       plan_id:     payment.plan_id || '',
       amount:      payment.amount,
       paymentMode: payment.paymentMode,
@@ -78,9 +94,10 @@ export default function Payments() {
   }
 
   async function submit() {
-    if (!form.member_id) { showToast('Please select a member.', 'error'); return; }
-    if (!form.amount || form.amount <= 0) { showToast('Enter a valid amount.', 'error'); return; }
-    if (!form.paymentDate) { showToast('Payment date is required.', 'error'); return; }
+    if (form.is_walkin && !form.walkin_name) { showToast('Walk-in name is required.', 'error'); return; }
+    if (!form.is_walkin && !form.member_id)  { showToast('Please select a member.', 'error'); return; }
+    if (!form.amount || form.amount <= 0)    { showToast('Enter a valid amount.', 'error'); return; }
+    if (!form.paymentDate)                   { showToast('Payment date is required.', 'error'); return; }
     setSubmitting(true);
 
     const isEdit = !!editTarget;
@@ -131,15 +148,45 @@ export default function Payments() {
               <i className="fa-solid fa-xmark" />
             </button>
             <h2>{editTarget ? 'Edit Payment' : 'Record Payment'}</h2>
-            <div className="form-group">
-              <label>Member *</label>
-              <select name="member_id" value={form.member_id} onChange={onChange}>
-                <option value="">Select Member</option>
-                {members.map(m => <option key={m.member_id} value={m.member_id}>{m.fullName}</option>)}
-              </select>
+
+            {/* Walk-in toggle */}
+            <div className="form-group" style={{ flexDirection:'row', alignItems:'center', gap:'0.5rem' }}>
+              <input
+                type="checkbox"
+                id="is_walkin"
+                name="is_walkin"
+                checked={form.is_walkin}
+                onChange={onChange}
+                style={{ width:'auto', accentColor:'var(--primary)', cursor:'pointer' }}
+              />
+              <label htmlFor="is_walkin" style={{ cursor:'pointer', marginBottom:0 }}>
+                Walk-in (not a registered member)
+              </label>
             </div>
+
+            {/* Member or Walk-in name */}
+            {form.is_walkin ? (
+              <div className="form-group">
+                <label>Walk-in Name *</label>
+                <input
+                  name="walkin_name"
+                  value={form.walkin_name}
+                  onChange={onChange}
+                  placeholder="e.g. John Smith"
+                />
+              </div>
+            ) : (
+              <div className="form-group">
+                <label>Member *</label>
+                <select name="member_id" value={form.member_id} onChange={onChange}>
+                  <option value="">Select Member</option>
+                  {members.map(m => <option key={m.member_id} value={m.member_id}>{m.fullName}</option>)}
+                </select>
+              </div>
+            )}
+
             <div className="form-group">
-              <label>Plan *</label>
+              <label>Plan</label>
               <select name="plan_id" value={form.plan_id} onChange={onChange}>
                 <option value="">Select Plan</option>
                 {plans.map(p => (
@@ -149,6 +196,7 @@ export default function Payments() {
                 ))}
               </select>
             </div>
+
             <div className="form-row">
               <div className="form-group">
                 <label>Amount (₱) *</label>
@@ -164,6 +212,7 @@ export default function Payments() {
                 </select>
               </div>
             </div>
+
             <div className="form-row">
               <div className="form-group">
                 <label>Payment Date *</label>
@@ -174,6 +223,7 @@ export default function Payments() {
                 <input name="remarks" value={form.remarks} onChange={onChange} placeholder="e.g. Monthly renewal" />
               </div>
             </div>
+
             <div style={{ background:'#f9f9f9', borderRadius:'0.5rem', padding:'0.8rem 1rem',
               marginTop:'0.5rem', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
               <span style={{ fontSize:'0.85rem', color:'gray' }}>Amount to Record</span>
@@ -181,6 +231,7 @@ export default function Payments() {
                 {fmt(parseFloat(form.amount) || 0)}
               </strong>
             </div>
+
             <div className="modal-footer">
               <button className="btn-cancel" onClick={() => setModal(false)}>Cancel</button>
               <button className="btn-submit" onClick={submit} disabled={submitting}>
@@ -216,44 +267,42 @@ export default function Payments() {
           <table className="paytable-container">
             <thead>
               <tr>
-                <th>Member</th><th>Plan</th><th>Amount</th><th>Mode</th><th>Date</th><th>Remarks</th><th>Actions</th>
+                <th>Name</th><th>Type</th><th>Plan</th><th>Amount</th><th>Mode</th><th>Date</th><th>Remarks</th><th>Actions</th>
               </tr>
-              <tr><td colSpan="7"><hr /></td></tr>
+              <tr><td colSpan="8"><hr /></td></tr>
             </thead>
             <tbody>
               {payments.length === 0 ? (
-                <tr><td colSpan="7" className="empty-state">
+                <tr><td colSpan="8" className="empty-state">
                   <i className="fa-solid fa-receipt" /><br />No payments recorded
                 </td></tr>
               ) : payments.map(p => (
                 <tr key={p.payments_id}>
                   <td>{p.fullName}</td>
+                  <td>
+                    <span style={{
+                      fontSize:'0.72rem', fontWeight:600, padding:'0.2rem 0.5rem',
+                      borderRadius:'999px',
+                      background: p.walkin_name ? '#fef3c7' : '#dcfce7',
+                      color:      p.walkin_name ? '#92400e' : '#166534',
+                    }}>
+                      {p.walkin_name ? 'Walk-in' : 'Member'}
+                    </span>
+                  </td>
                   <td>{p.planName || '—'}</td>
                   <td style={{ color:'#278727', fontWeight:700 }}>{fmt(p.amount)}</td>
                   <td>{p.paymentMode}</td>
                   <td>{p.paymentDate?.split('T')[0] ?? p.paymentDate}</td>
                   <td>{p.remarks || '—'}</td>
-                  <td style={{ whiteSpace:'nowrap' }}>
-                    <button
-                      onClick={() => openEditModal(p)}
-                      title="Edit"
-                      style={{ background:'none', border:'none', color:'#1d7ed6', cursor:'pointer',
-                        padding:'0.3rem 0.4rem', borderRadius:'0.3rem', marginRight:'0.3rem', fontSize:'0.85rem' }}
-                      onMouseEnter={e => e.currentTarget.style.background='#dbeafe'}
-                      onMouseLeave={e => e.currentTarget.style.background='none'}
-                    >
-                      <i className="fa-solid fa-pen-to-square" />
-                    </button>
-                    <button
-                      onClick={() => setDeleteTarget(p.payments_id)}
-                      title="Delete"
-                      style={{ background:'none', border:'none', color:'#ef4444', cursor:'pointer',
-                        padding:'0.3rem 0.4rem', borderRadius:'0.3rem', fontSize:'0.85rem' }}
-                      onMouseEnter={e => e.currentTarget.style.background='#fee2e2'}
-                      onMouseLeave={e => e.currentTarget.style.background='none'}
-                    >
-                      <i className="fa-solid fa-trash" />
-                    </button>
+                  <td>
+                    <div className="actions-wrapper">
+                      <button onClick={() => openEditModal(p)} title="Edit">
+                        <i className="fa-solid fa-pen-to-square" />
+                      </button>
+                      <button onClick={() => setDeleteTarget(p.payments_id)} title="Delete">
+                        <i className="fa-solid fa-delete-left" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -276,6 +325,19 @@ export default function Payments() {
                   <strong style={{ color:'#278727' }}>{fmt(p.amount)}</strong>
                 </div>
                 <div className="mobile-card-row">
+                  <span className="mobile-card-label">Type</span>
+                  <span className="mobile-card-value">
+                    <span style={{
+                      fontSize:'0.72rem', fontWeight:600, padding:'0.2rem 0.5rem',
+                      borderRadius:'999px',
+                      background: p.walkin_name ? '#fef3c7' : '#dcfce7',
+                      color:      p.walkin_name ? '#92400e' : '#166534',
+                    }}>
+                      {p.walkin_name ? 'Walk-in' : 'Member'}
+                    </span>
+                  </span>
+                </div>
+                <div className="mobile-card-row">
                   <span className="mobile-card-label">Plan</span>
                   <span className="mobile-card-value">{p.planName || '—'}</span>
                 </div>
@@ -292,7 +354,7 @@ export default function Payments() {
                     <i className="fa-solid fa-pen-to-square" /> Edit
                   </button>
                   <button onClick={() => setDeleteTarget(p.payments_id)} style={{ color:'#ef4444' }}>
-                    <i className="fa-solid fa-trash" /> Delete
+                    <i className="fa-solid fa-delete-left" /> Delete
                   </button>
                 </div>
               </div>

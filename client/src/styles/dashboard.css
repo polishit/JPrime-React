@@ -482,15 +482,15 @@ body {
   vertical-align: middle;
 }
 
-.members-table-container td:nth-child(7) .actions-wrapper {
+.actions-wrapper {
   display: flex;
   gap: var(--space-2);
   justify-content: center;
   align-items: center;
 }
 
-.members-table-container td:nth-child(7) .actions-wrapper button:nth-child(1) {
-  color: black;
+.actions-wrapper button:nth-child(1) {
+  color: #1d7ed6;
   font-size: var(--font-sm);
   padding: var(--space-2);
   border: none;
@@ -499,7 +499,7 @@ body {
   transition: 0.5s ease-in-out;
 }
 
-.members-table-container td:nth-child(7) .actions-wrapper button:nth-child(2) {
+.actions-wrapper button:nth-child(2) {
   color: red;
   font-size: var(--font-sm);
   padding: var(--space-2);
@@ -509,8 +509,8 @@ body {
   transition: 0.5s ease-in-out;
 }
 
-.members-table-container td:nth-child(7) .actions-wrapper button:nth-child(1):hover,
-.members-table-container td:nth-child(7) .actions-wrapper button:nth-child(2):hover {
+.actions-wrapper button:nth-child(1):hover,
+.actions-wrapper button:nth-child(2):hover {
   background-color: var(--primary);
 }
 
@@ -794,17 +794,7 @@ body {
 .expense-container th { text-align: center; color: gray; font-size: var(--font-sm); }
 .expense-container td { text-align: center; color: gray; font-size: var(--font-sm); }
 
-.expense-container td:nth-child(5) button {
-  color: red;
-  font-size: var(--font-sm);
-  padding: var(--space-2);
-  border: none;
-  border-radius: 0.4rem;
-  cursor: pointer;
-  transition: 0.5s ease-in-out;
-}
 
-.expense-container td:nth-child(5) button:hover { background-color: var(--primary); }
 .expense-container td:nth-child(2) { color: orange; font-weight: 700; }
 
 /* ============================================================
