@@ -3,11 +3,14 @@ import Sidebar from '../components/Sidebar';
 import Toast, { useToast } from '../components/Toast';
 import ConfirmDialog from '../components/ConfirmDialog';
 
+const EMPTY_FORM = { fullName:'', phone:'', specialization:'' };
+
 export default function Trainers() {
   const { toast, showToast } = useToast();
   const [trainers,     setTrainers]     = useState([]);
   const [modal,        setModal]        = useState(false);
-  const [form,         setForm]         = useState({ fullName:'', phone:'', specialization:'' });
+  const [editTarget,   setEditTarget]   = useState(null);
+  const [form,         setForm]         = useState(EMPTY_FORM);
   const [submitting,   setSubmitting]   = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
@@ -21,22 +24,38 @@ export default function Trainers() {
   function onChange(e) { setForm(f => ({ ...f, [e.target.name]: e.target.value })); }
 
   function openModal() {
-    setForm({ fullName:'', phone:'', specialization:'' });
+    setEditTarget(null);
+    setForm(EMPTY_FORM);
+    setModal(true);
+  }
+
+  function openEditModal(trainer) {
+    setEditTarget(trainer);
+    setForm({
+      fullName:       trainer.fullName,
+      phone:          trainer.phone || '',
+      specialization: trainer.specialization || '',
+    });
     setModal(true);
   }
 
   async function submit() {
     if (!form.fullName) { showToast('Name is required.', 'error'); return; }
     setSubmitting(true);
-    const res  = await fetch('/api/trainers', {
-      method: 'POST',
+
+    const isEdit = !!editTarget;
+    const url    = isEdit ? `/api/trainers/${editTarget.trainer_id}` : '/api/trainers';
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const res  = await fetch(url, {
+      method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
     });
     const data = await res.json();
     setSubmitting(false);
-    if (data.success) { setModal(false); showToast('Trainer added!'); loadTrainers(); }
-    else showToast(data.error || 'Failed to add trainer.', 'error');
+    if (data.success) { setModal(false); showToast(isEdit ? 'Trainer updated!' : 'Trainer added!'); loadTrainers(); }
+    else showToast(data.error || 'Failed to save trainer.', 'error');
   }
 
   async function doDelete() {
@@ -66,7 +85,7 @@ export default function Trainers() {
             <button className="modal-close" onClick={() => setModal(false)}>
               <i className="fa-solid fa-xmark" />
             </button>
-            <h2>Add Trainer</h2>
+            <h2>{editTarget ? 'Edit Trainer' : 'Add Trainer'}</h2>
             <div className="form-group">
               <label>Full Name *</label>
               <input name="fullName" value={form.fullName} onChange={onChange}
@@ -85,7 +104,7 @@ export default function Trainers() {
             <div className="modal-footer">
               <button className="btn-cancel" onClick={() => setModal(false)}>Cancel</button>
               <button className="btn-submit" onClick={submit} disabled={submitting}>
-                {submitting ? <span className="spinner" /> : 'Add Trainer'}
+                {submitting ? <span className="spinner" /> : (editTarget ? 'Save Changes' : 'Add Trainer')}
               </button>
             </div>
           </div>
@@ -126,7 +145,17 @@ export default function Trainers() {
                   <span><i className="fa-solid fa-user-group" /></span>{' '}
                   {t.memberCount} member{t.memberCount != 1 ? 's' : ''} assigned
                 </p>
-                <div style={{ display:'flex', justifyContent:'flex-end', marginTop:'0.25rem' }}>
+                <div style={{ display:'flex', justifyContent:'flex-end', gap:'0.5rem', marginTop:'0.25rem' }}>
+                  <button
+                    onClick={() => openEditModal(t)}
+                    style={{ background:'none', border:'none', color:'#1d7ed6', fontSize:'0.85rem',
+                      cursor:'pointer', padding:'0.3rem 0.5rem', borderRadius:'0.3rem',
+                      transition:'0.2s', display:'flex', alignItems:'center', gap:'0.3rem' }}
+                    onMouseEnter={e => e.currentTarget.style.background='#dbeafe'}
+                    onMouseLeave={e => e.currentTarget.style.background='none'}
+                  >
+                    <i className="fa-solid fa-pen-to-square" /> Edit
+                  </button>
                   <button
                     onClick={() => setDeleteTarget(t.trainer_id)}
                     style={{ background:'none', border:'none', color:'#ef4444', fontSize:'0.85rem',

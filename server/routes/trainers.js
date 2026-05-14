@@ -35,6 +35,21 @@ router.post('/', async (req, res) => {
   }
 });
 
+// PUT /api/trainers/:id
+router.put('/:id', async (req, res) => {
+  try {
+    const d = req.body;
+    if (!d.fullName) return res.status(400).json({ error: 'Name required' });
+
+    await db.query(
+      "UPDATE trainers SET fullName=?, phone=?, specialization=? WHERE trainer_id=?",
+      [d.fullName, d.phone || '', d.specialization || '', req.params.id]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
 
 // DELETE /api/trainers/:id
 router.delete('/:id', async (req, res) => {

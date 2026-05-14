@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import Toast, { useToast } from '../components/Toast';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const EMPTY_FORM = { member_id:'', plan_id:'', amount:'', paymentMode:'Cash', paymentDate:'', remarks:'' };
 
@@ -16,8 +17,10 @@ export default function Payments() {
   const [plans,       setPlans]       = useState([]);
   const [planPrices,  setPlanPrices]  = useState({});
   const [modal,       setModal]       = useState(false);
+  const [editTarget,  setEditTarget]  = useState(null);
   const [form,        setForm]        = useState(EMPTY_FORM);
   const [submitting,  setSubmitting]  = useState(false);
+  const [deleteTarget,setDeleteTarget]= useState(null);
 
   async function loadDropdowns() {
     const [mr, pr] = await Promise.all([
@@ -49,14 +52,28 @@ export default function Payments() {
 
   function onChange(e) {
     const next = { ...form, [e.target.name]: e.target.value };
-    if (e.target.name === 'plan_id' && planPrices[e.target.value]) {
+    if (e.target.name === 'plan_id' && planPrices[e.target.value] && !editTarget) {
       next.amount = planPrices[e.target.value];
     }
     setForm(next);
   }
 
   function openModal() {
+    setEditTarget(null);
     setForm({ ...EMPTY_FORM, paymentDate: new Date().toISOString().split('T')[0] });
+    setModal(true);
+  }
+
+  function openEditModal(payment) {
+    setEditTarget(payment);
+    setForm({
+      member_id:   payment.member_id,
+      plan_id:     payment.plan_id || '',
+      amount:      payment.amount,
+      paymentMode: payment.paymentMode,
+      paymentDate: payment.paymentDate?.split('T')[0] ?? payment.paymentDate,
+      remarks:     payment.remarks || '',
+    });
     setModal(true);
   }
 
@@ -65,8 +82,13 @@ export default function Payments() {
     if (!form.amount || form.amount <= 0) { showToast('Enter a valid amount.', 'error'); return; }
     if (!form.paymentDate) { showToast('Payment date is required.', 'error'); return; }
     setSubmitting(true);
-    const res  = await fetch('/api/payments', {
-      method: 'POST',
+
+    const isEdit = !!editTarget;
+    const url    = isEdit ? `/api/payments/${editTarget.payments_id}` : '/api/payments';
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const res  = await fetch(url, {
+      method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
     });
@@ -74,16 +96,33 @@ export default function Payments() {
     setSubmitting(false);
     if (data.success) {
       setModal(false);
-      showToast('Payment recorded!');
+      showToast(isEdit ? 'Payment updated!' : 'Payment recorded!');
       loadPayments();
     } else {
-      showToast(data.error || 'Failed to record payment.', 'error');
+      showToast(data.error || 'Failed to save payment.', 'error');
     }
+  }
+
+  async function doDelete() {
+    const res  = await fetch(`/api/payments/${deleteTarget}`, { method: 'DELETE' });
+    const data = await res.json();
+    setDeleteTarget(null);
+    if (data.success) { showToast('Payment deleted.'); loadPayments(); }
+    else showToast(data.error || 'Delete failed.', 'error');
   }
 
   return (
     <>
       <Toast toast={toast} />
+
+      {deleteTarget && (
+        <ConfirmDialog
+          title="Delete Payment?"
+          message="This payment record will be permanently removed."
+          onConfirm={doDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
 
       {modal && (
         <div className="modal-overlay active">
@@ -91,7 +130,7 @@ export default function Payments() {
             <button className="modal-close" onClick={() => setModal(false)}>
               <i className="fa-solid fa-xmark" />
             </button>
-            <h2>Record Payment</h2>
+            <h2>{editTarget ? 'Edit Payment' : 'Record Payment'}</h2>
             <div className="form-group">
               <label>Member *</label>
               <select name="member_id" value={form.member_id} onChange={onChange}>
@@ -145,7 +184,7 @@ export default function Payments() {
             <div className="modal-footer">
               <button className="btn-cancel" onClick={() => setModal(false)}>Cancel</button>
               <button className="btn-submit" onClick={submit} disabled={submitting}>
-                {submitting ? <span className="spinner" /> : 'Record Payment'}
+                {submitting ? <span className="spinner" /> : (editTarget ? 'Save Changes' : 'Record Payment')}
               </button>
             </div>
           </div>
@@ -177,13 +216,13 @@ export default function Payments() {
           <table className="paytable-container">
             <thead>
               <tr>
-                <th>Member</th><th>Plan</th><th>Amount</th><th>Mode</th><th>Date</th><th>Remarks</th>
+                <th>Member</th><th>Plan</th><th>Amount</th><th>Mode</th><th>Date</th><th>Remarks</th><th>Actions</th>
               </tr>
-              <tr><td colSpan="6"><hr /></td></tr>
+              <tr><td colSpan="7"><hr /></td></tr>
             </thead>
             <tbody>
               {payments.length === 0 ? (
-                <tr><td colSpan="6" className="empty-state">
+                <tr><td colSpan="7" className="empty-state">
                   <i className="fa-solid fa-receipt" /><br />No payments recorded
                 </td></tr>
               ) : payments.map(p => (
@@ -194,6 +233,28 @@ export default function Payments() {
                   <td>{p.paymentMode}</td>
                   <td>{p.paymentDate?.split('T')[0] ?? p.paymentDate}</td>
                   <td>{p.remarks || '—'}</td>
+                  <td style={{ whiteSpace:'nowrap' }}>
+                    <button
+                      onClick={() => openEditModal(p)}
+                      title="Edit"
+                      style={{ background:'none', border:'none', color:'#1d7ed6', cursor:'pointer',
+                        padding:'0.3rem 0.4rem', borderRadius:'0.3rem', marginRight:'0.3rem', fontSize:'0.85rem' }}
+                      onMouseEnter={e => e.currentTarget.style.background='#dbeafe'}
+                      onMouseLeave={e => e.currentTarget.style.background='none'}
+                    >
+                      <i className="fa-solid fa-pen-to-square" />
+                    </button>
+                    <button
+                      onClick={() => setDeleteTarget(p.payments_id)}
+                      title="Delete"
+                      style={{ background:'none', border:'none', color:'#ef4444', cursor:'pointer',
+                        padding:'0.3rem 0.4rem', borderRadius:'0.3rem', fontSize:'0.85rem' }}
+                      onMouseEnter={e => e.currentTarget.style.background='#fee2e2'}
+                      onMouseLeave={e => e.currentTarget.style.background='none'}
+                    >
+                      <i className="fa-solid fa-trash" />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -225,6 +286,14 @@ export default function Payments() {
                 <div className="mobile-card-row">
                   <span className="mobile-card-label">Remarks</span>
                   <span className="mobile-card-value">{p.remarks || '—'}</span>
+                </div>
+                <div className="mobile-card-actions">
+                  <button onClick={() => openEditModal(p)}>
+                    <i className="fa-solid fa-pen-to-square" /> Edit
+                  </button>
+                  <button onClick={() => setDeleteTarget(p.payments_id)} style={{ color:'#ef4444' }}>
+                    <i className="fa-solid fa-trash" /> Delete
+                  </button>
                 </div>
               </div>
             ))}

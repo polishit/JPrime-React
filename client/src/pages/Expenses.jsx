@@ -7,12 +7,15 @@ function fmt(n) {
   return '₱' + Number(n).toLocaleString('en-PH', { minimumFractionDigits:2, maximumFractionDigits:2 });
 }
 
+const EMPTY_FORM = { type:'', amount:'', expenseDate:'', notes:'' };
+
 export default function Expenses() {
   const { toast, showToast } = useToast();
   const [expenses,     setExpenses]     = useState([]);
   const [totalExp,     setTotalExp]     = useState(0);
   const [modal,        setModal]        = useState(false);
-  const [form,         setForm]         = useState({ type:'', amount:'', expenseDate:'', notes:'' });
+  const [editTarget,   setEditTarget]   = useState(null);
+  const [form,         setForm]         = useState(EMPTY_FORM);
   const [submitting,   setSubmitting]   = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
@@ -34,7 +37,19 @@ export default function Expenses() {
   function onChange(e) { setForm(f => ({ ...f, [e.target.name]: e.target.value })); }
 
   function openModal() {
+    setEditTarget(null);
     setForm({ type:'', amount:'', expenseDate: new Date().toISOString().split('T')[0], notes:'' });
+    setModal(true);
+  }
+
+  function openEditModal(expense) {
+    setEditTarget(expense);
+    setForm({
+      type:        expense.type,
+      amount:      expense.amount,
+      expenseDate: expense.expenseDate?.split('T')[0] ?? expense.expenseDate,
+      notes:       expense.notes || '',
+    });
     setModal(true);
   }
 
@@ -43,15 +58,20 @@ export default function Expenses() {
     if (!form.amount || form.amount <= 0) { showToast('Enter a valid amount.', 'error'); return; }
     if (!form.expenseDate) { showToast('Date is required.', 'error'); return; }
     setSubmitting(true);
-    const res  = await fetch('/api/expenses', {
-      method: 'POST',
+
+    const isEdit = !!editTarget;
+    const url    = isEdit ? `/api/expenses/${editTarget.expenses_id}` : '/api/expenses';
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const res  = await fetch(url, {
+      method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
     });
     const data = await res.json();
     setSubmitting(false);
-    if (data.success) { setModal(false); showToast('Expense added!'); load(); }
-    else showToast(data.error || 'Failed to add expense.', 'error');
+    if (data.success) { setModal(false); showToast(isEdit ? 'Expense updated!' : 'Expense added!'); load(); }
+    else showToast(data.error || 'Failed to save expense.', 'error');
   }
 
   async function doDelete() {
@@ -80,7 +100,7 @@ export default function Expenses() {
             <button className="modal-close" onClick={() => setModal(false)}>
               <i className="fa-solid fa-xmark" />
             </button>
-            <h2>Add Expense</h2>
+            <h2>{editTarget ? 'Edit Expense' : 'Add Expense'}</h2>
             <div className="form-row">
               <div className="form-group">
                 <label>Type *</label>
@@ -118,7 +138,7 @@ export default function Expenses() {
             <div className="modal-footer">
               <button className="btn-cancel" onClick={() => setModal(false)}>Cancel</button>
               <button className="btn-submit" onClick={submit} disabled={submitting}>
-                {submitting ? <span className="spinner" /> : 'Add Expense'}
+                {submitting ? <span className="spinner" /> : (editTarget ? 'Save Changes' : 'Add Expense')}
               </button>
             </div>
           </div>
@@ -163,8 +183,25 @@ export default function Expenses() {
                   <td style={{ color:'orange', fontWeight:700 }}>{fmt(e.amount)}</td>
                   <td>{e.expenseDate?.split('T')[0] ?? e.expenseDate}</td>
                   <td>{e.notes || '—'}</td>
-                  <td>
-                    <button onClick={() => setDeleteTarget(e.expenses_id)} title="Delete">
+                  <td style={{ whiteSpace:'nowrap' }}>
+                    <button
+                      onClick={() => openEditModal(e)}
+                      title="Edit"
+                      style={{ background:'none', border:'none', color:'#1d7ed6', cursor:'pointer',
+                        padding:'0.3rem 0.4rem', borderRadius:'0.3rem', marginRight:'0.3rem', fontSize:'0.85rem' }}
+                      onMouseEnter={ev => ev.currentTarget.style.background='#dbeafe'}
+                      onMouseLeave={ev => ev.currentTarget.style.background='none'}
+                    >
+                      <i className="fa-solid fa-pen-to-square" />
+                    </button>
+                    <button
+                      onClick={() => setDeleteTarget(e.expenses_id)}
+                      title="Delete"
+                      style={{ background:'none', border:'none', color:'#ef4444', cursor:'pointer',
+                        padding:'0.3rem 0.4rem', borderRadius:'0.3rem', fontSize:'0.85rem' }}
+                      onMouseEnter={ev => ev.currentTarget.style.background='#fee2e2'}
+                      onMouseLeave={ev => ev.currentTarget.style.background='none'}
+                    >
                       <i className="fa-solid fa-delete-left" />
                     </button>
                   </td>
@@ -193,7 +230,10 @@ export default function Expenses() {
                   <span className="mobile-card-value">{e.notes || '—'}</span>
                 </div>
                 <div className="mobile-card-actions">
-                  <button onClick={() => setDeleteTarget(e.expenses_id)}>
+                  <button onClick={() => openEditModal(e)}>
+                    <i className="fa-solid fa-pen-to-square" /> Edit
+                  </button>
+                  <button onClick={() => setDeleteTarget(e.expenses_id)} style={{ color:'#ef4444' }}>
                     <i className="fa-solid fa-delete-left" /> Delete
                   </button>
                 </div>

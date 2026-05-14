@@ -36,6 +36,22 @@ router.post('/', async (req, res) => {
   }
 });
 
+// PUT /api/plans/:id
+router.put('/:id', async (req, res) => {
+  try {
+    const d = req.body;
+    if (!d.name || !d.durationMonths || d.durationMonths < 1 || d.price < 0)
+      return res.status(400).json({ error: 'Invalid input' });
+
+    await db.query(
+      "UPDATE plans SET name=?, durationMonths=?, price=?, description=? WHERE plan_id=?",
+      [d.name, parseInt(d.durationMonths), parseFloat(d.price), d.description || '', req.params.id]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
 
 // DELETE /api/plans/:id
 router.delete('/:id', async (req, res) => {
@@ -46,4 +62,5 @@ router.delete('/:id', async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 });
+
 module.exports = router;

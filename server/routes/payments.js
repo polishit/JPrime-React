@@ -11,6 +11,7 @@ router.get('/', async (req, res) => {
     }
     const [rows] = await db.query(
       `SELECT py.payments_id, m.fullName, p.name planName,
+              py.member_id, py.plan_id,
               py.amount, py.paymentMode, py.paymentDate, py.remarks
        FROM payments py
        JOIN members m ON m.member_id = py.member_id
@@ -25,7 +26,7 @@ router.get('/', async (req, res) => {
 
 // POST /api/payments
 router.post('/', async (req, res) => {
-try {
+  try {
     const d = req.body;
     const memberId = parseInt(d.member_id) || 0;
     const planId   = d.plan_id ? parseInt(d.plan_id) : null;
@@ -39,6 +40,39 @@ try {
        d.paymentMode || 'Cash', d.remarks || '']
     );
     res.json({ success: true, payment_id: result.insertId });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// PUT /api/payments/:id
+router.put('/:id', async (req, res) => {
+  try {
+    const d = req.body;
+    const memberId = parseInt(d.member_id) || 0;
+    const planId   = d.plan_id ? parseInt(d.plan_id) : null;
+    const amount   = parseFloat(d.amount)  || 0;
+    if (!memberId || amount <= 0)
+      return res.status(400).json({ error: 'Invalid input' });
+
+    await db.query(
+      "UPDATE payments SET member_id=?, plan_id=?, amount=?, paymentDate=?, paymentMode=?, remarks=? WHERE payments_id=?",
+      [memberId, planId, amount,
+       d.paymentDate || new Date().toISOString().split('T')[0],
+       d.paymentMode || 'Cash', d.remarks || '',
+       req.params.id]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// DELETE /api/payments/:id
+router.delete('/:id', async (req, res) => {
+  try {
+    await db.query("DELETE FROM payments WHERE payments_id=?", [req.params.id]);
+    res.json({ success: true });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

@@ -35,6 +35,23 @@ router.post('/', async (req, res) => {
   }
 });
 
+// PUT /api/expenses/:id
+router.put('/:id', async (req, res) => {
+  try {
+    const d      = req.body;
+    const amount = parseFloat(d.amount) || 0;
+    if (!d.type || amount <= 0) return res.status(400).json({ error: 'Invalid input' });
+
+    await db.query(
+      "UPDATE expenses SET type=?, amount=?, expenseDate=?, notes=? WHERE expenses_id=?",
+      [d.type, amount, d.expenseDate || new Date().toISOString().split('T')[0], d.notes || '', req.params.id]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 // DELETE /api/expenses/:id
 router.delete('/:id', async (req, res) => {
   try {

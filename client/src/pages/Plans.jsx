@@ -3,11 +3,14 @@ import Sidebar from '../components/Sidebar';
 import Toast, { useToast } from '../components/Toast';
 import ConfirmDialog from '../components/ConfirmDialog';
 
+const EMPTY_FORM = { name:'', durationMonths:'', price:'', description:'' };
+
 export default function Plans() {
   const { toast, showToast } = useToast();
   const [plans,        setPlans]        = useState([]);
   const [modal,        setModal]        = useState(false);
-  const [form,         setForm]         = useState({ name:'', durationMonths:'', price:'', description:'' });
+  const [editTarget,   setEditTarget]   = useState(null);
+  const [form,         setForm]         = useState(EMPTY_FORM);
   const [submitting,   setSubmitting]   = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
@@ -21,7 +24,19 @@ export default function Plans() {
   function onChange(e) { setForm(f => ({ ...f, [e.target.name]: e.target.value })); }
 
   function openModal() {
-    setForm({ name:'', durationMonths:'', price:'', description:'' });
+    setEditTarget(null);
+    setForm(EMPTY_FORM);
+    setModal(true);
+  }
+
+  function openEditModal(plan) {
+    setEditTarget(plan);
+    setForm({
+      name:           plan.name,
+      durationMonths: plan.durationMonths,
+      price:          plan.price,
+      description:    plan.description || '',
+    });
     setModal(true);
   }
 
@@ -32,20 +47,25 @@ export default function Plans() {
     if (isNaN(form.price) || form.price < 0)
       { showToast('Enter a valid price.', 'error'); return; }
     setSubmitting(true);
-    const res  = await fetch('/api/plans', {
-      method: 'POST',
+
+    const isEdit = !!editTarget;
+    const url    = isEdit ? `/api/plans/${editTarget.plan_id}` : '/api/plans';
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const res  = await fetch(url, {
+      method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        name: form.name,
+        name:           form.name,
         durationMonths: parseInt(form.durationMonths),
-        price: parseFloat(form.price),
-        description: form.description,
+        price:          parseFloat(form.price),
+        description:    form.description,
       }),
     });
     const data = await res.json();
     setSubmitting(false);
-    if (data.success) { setModal(false); showToast('Plan added!'); loadPlans(); }
-    else showToast(data.error || 'Failed to add plan.', 'error');
+    if (data.success) { setModal(false); showToast(isEdit ? 'Plan updated!' : 'Plan added!'); loadPlans(); }
+    else showToast(data.error || 'Failed to save plan.', 'error');
   }
 
   async function doDelete() {
@@ -75,7 +95,7 @@ export default function Plans() {
             <button className="modal-close" onClick={() => setModal(false)}>
               <i className="fa-solid fa-xmark" />
             </button>
-            <h2>Add Plan</h2>
+            <h2>{editTarget ? 'Edit Plan' : 'Add Plan'}</h2>
             <div className="form-group">
               <label>Plan Name *</label>
               <input name="name" value={form.name} onChange={onChange} placeholder="e.g. Monthly Basic" />
@@ -100,7 +120,7 @@ export default function Plans() {
             <div className="modal-footer">
               <button className="btn-cancel" onClick={() => setModal(false)}>Cancel</button>
               <button className="btn-submit" onClick={submit} disabled={submitting}>
-                {submitting ? <span className="spinner" /> : 'Add Plan'}
+                {submitting ? <span className="spinner" /> : (editTarget ? 'Save Changes' : 'Add Plan')}
               </button>
             </div>
           </div>
@@ -143,7 +163,17 @@ export default function Plans() {
                   <span><i className="fa-solid fa-user-group" /></span>
                   {p.memberCount} member{p.memberCount != 1 ? 's' : ''}
                 </div>
-                <div style={{ display:'flex', justifyContent:'flex-end', marginTop:'0.25rem' }}>
+                <div style={{ display:'flex', justifyContent:'flex-end', gap:'0.5rem', marginTop:'0.25rem' }}>
+                  <button
+                    onClick={() => openEditModal(p)}
+                    style={{ background:'none', border:'none', color:'#1d7ed6', fontSize:'0.85rem',
+                      cursor:'pointer', padding:'0.3rem 0.5rem', borderRadius:'0.3rem',
+                      transition:'0.2s', display:'flex', alignItems:'center', gap:'0.3rem' }}
+                    onMouseEnter={e => e.currentTarget.style.background='#dbeafe'}
+                    onMouseLeave={e => e.currentTarget.style.background='none'}
+                  >
+                    <i className="fa-solid fa-pen-to-square" /> Edit
+                  </button>
                   <button
                     onClick={() => setDeleteTarget(p.plan_id)}
                     style={{ background:'none', border:'none', color:'#ef4444', fontSize:'0.85rem',
